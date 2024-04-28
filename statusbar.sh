@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
-# Define included/excluded variables
-declare -A INCLUDE_VARS=(
+# Define included/excluded modules
+declare -A MODULES=(
     [datetime]=1
     [uptime]=1
     [memory_used]=1
@@ -55,12 +55,12 @@ get_mutestate() {
     amixer sget Master | awk 'NR==6 {print substr ($6, 2, length($6)-2)}'
 }
     for VAR in datetime uptime memory_used memory_total memory_percentage cpu_usage packets_received packets_sent volume mutestate; do
-        if [ -z "${INCLUDE_VARS[$VAR]}" ]; then
+        if [ -z "${MODULES[$VAR]}" ]; then
             NOTINCLUDED+="$VAR "
             continue
         fi
     done
-            echo "Warning: $NOTINCLUDED is not set in INCLUDE_VARS." 
+            echo "Warning: $NOTINCLUDED is not set in MODULES." 
 
             #sleep 5;
 # Call get functions and update the variables
@@ -78,12 +78,12 @@ while true; do
     mutestate=""
 
     for VAR in datetime uptime memory_used memory_total memory_percentage cpu_usage packets_received packets_sent volume mutestate; do
-        if [ -z "${INCLUDE_VARS[$VAR]}" ]; then
+        if [ -z "${MODULES[$VAR]}" ]; then
             echo "" >/dev/null 2>&1
             continue
         fi
 
-        if [ "${INCLUDE_VARS[$VAR]}" -eq 1 ]; then
+        if [ "${MODULES[$VAR]}" -eq 1 ]; then
             value=$(get_$VAR)
             if [ -n "$value" ]; then
                 eval "$VAR=\"$value\""
@@ -119,8 +119,14 @@ while true; do
             volume_string=""
             ;;
     esac
-
-    echo "[ $volume_string ] [ mem : $memory_used/$memory_total ($memory_percentage%) ] [  : $cpu_usage% ] $datetime" 
+    
+    if echo "$cpu_usage" | grep -Eq '^[0-9]+$'; then
+        xsetroot -name "[ $volume_string ] [  : $memory_used/$memory_total ($memory_percentage%) ] [  : $cpu_usage.0% ] $datetime "
+        else
+        xsetroot -name "[ $volume_string ] [  : $memory_used/$memory_total ($memory_percentage%) ] [  : $cpu_usage% ] $datetime "
+    fi
+    #Uncomment the line bellow if your WM uses the standard output instead of xsetroot.
     #echo -e "[\033[38;5;214m \033[0m$volume_string ] \033[38;5;27m[ \033[38;5;39mmem : \033[38;5;27m$memory_used/$memory_total \033[38;5;27m($memory_percentage%\033[38;5;27m) ] \033[38;5;30m[ \033[38;5;37m : \033[38;5;33m$cpu_usage%\033[38;5;30m ] \033[38;5;244m$datetime\033[0m"
+
     sleep 1;
 done
