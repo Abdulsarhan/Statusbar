@@ -1,4 +1,4 @@
-#Statusbar
+# Statusbar
 This repo contains 2 status bars. 
 
 statusbar.sh and statusbarfast.sh
